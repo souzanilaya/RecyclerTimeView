@@ -1,8 +1,10 @@
 package in.co.integro.recyclertimeview;
 
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -28,6 +30,8 @@ public class DateTimeAdapter extends RecyclerView.Adapter<DateTimeAdapter.DateTi
     private OnTimeStateChanged onTimeStateChanged;
 
     private int lastItemSelectedPosition = -1;
+
+    private Context context;
 
     public void setTimeList(String serviceFromTimeInString, String serviceTillTimeInString) {
         String[] serviceFromTimeArray = serviceFromTimeInString.split(":");
@@ -65,7 +69,6 @@ public class DateTimeAdapter extends RecyclerView.Adapter<DateTimeAdapter.DateTi
                                 clonedCalFrom.getTimeInMillis()
                         )
                 );
-                timeList.get(timeList.size() - 1).addObserver(new TimeObserver());
             }
 
         } else {
@@ -75,20 +78,31 @@ public class DateTimeAdapter extends RecyclerView.Adapter<DateTimeAdapter.DateTi
     }
 
     public void refreshState(int oldPosition, int newPosition) {
-
+        if (oldPosition!=-1) {
+            timeList.get(oldPosition).setState(false);
+        }
+        timeList.get(newPosition).setState(true);
+        notifyItemChanged(oldPosition);
+        notifyItemChanged(newPosition);
     }
 
     @NonNull
     @Override
     public DateTimeViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        context=parent.getContext();
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.layout_time, parent, false);
         return new DateTimeViewHolder(view);
     }
 
     @Override
     public void onBindViewHolder(@NonNull DateTimeViewHolder holder, int position) {
+        CustomTime customTime = timeList.get(position);
         holder.timeView.setText(timeList.get(position).getTime());
-
+        if (customTime.getState()) {
+            holder.timeHolder.setBackgroundColor(context.getResources().getColor(R.color.colorAccent));
+        } else {
+            holder.timeHolder.setBackgroundColor(context.getResources().getColor(R.color.colorWhite));
+        }
     }
 
     @Override
@@ -109,6 +123,9 @@ public class DateTimeAdapter extends RecyclerView.Adapter<DateTimeAdapter.DateTi
         @BindView(R.id.time)
         TextView timeView;
 
+        @BindView(R.id.timeHolder)
+        LinearLayout timeHolder;
+
         public DateTimeViewHolder(@NonNull View itemView) {
             super(itemView);
             ButterKnife.bind(this, itemView);
@@ -116,8 +133,8 @@ public class DateTimeAdapter extends RecyclerView.Adapter<DateTimeAdapter.DateTi
                 @Override
                 public void onClick(View v) {
                     onTimeStateChanged.onTimeSelected(itemView, lastItemSelectedPosition, getAdapterPosition(), timeList.get(getAdapterPosition()));
+                    refreshState(lastItemSelectedPosition,getAdapterPosition());
                     lastItemSelectedPosition = getAdapterPosition();
-
                 }
             });
         }

@@ -1,8 +1,11 @@
 package in.co.integro.recyclertimeview;
 
+import androidx.databinding.BaseObservable;
+import androidx.databinding.Bindable;
+
 import java.util.Observable;
 
-public class CustomTime extends Observable {
+public class CustomTime extends BaseObservable {
 
     private String time;
     private boolean state = false;
@@ -17,13 +20,14 @@ public class CustomTime extends Observable {
         return time;
     }
 
-    public boolean isState() {
+    @Bindable
+    public boolean getState() {
         return state;
     }
 
     public void setState(boolean state) {
         this.state = state;
-        notifyObservers();
+        notifyPropertyChanged(BR.state);
     }
 
     public long getTimeInMillis() {
